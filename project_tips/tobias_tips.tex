@@ -1,0 +1,107 @@
+\documentclass[10pt, a4paper]{article}
+
+\usepackage{cmap} 
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amssymb, amsmath}
+\usepackage{amscd}
+\usepackage{graphicx}
+\usepackage[usenames]{color}
+\usepackage{braket}
+\usepackage{mathrsfs}
+\usepackage{enumerate}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+
+\def\setZ{{\mathbb{Z}}}
+\def\taumax{{\tau_{\mathrm{max}}}}
+\def\tr{{\mathrm{tr}}}
+\def\rhoin{{\rho_{\mathrm{in}}}}
+\def\rhofin{{\rho_{\mathrm{fin}}}}
+\def\blue{\textcolor{blue}}
+\def\red{\textcolor{red}}
+\def\green{\textcolor{green}}
+\def\yellow{\textcolor{yellow}}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm ,bindingoffset=0cm]{geometry}
+
+
+\begin{document}
+\section*{Generalities and advice for the B.Sc. project of Tobias\\
+\small{by Yaroslav Herasymenko}}
+
+
+We aim to use perturbation theory (PT) series as a prescription for efficient variational quantum ansatzes (VQAs). As shown in our 2019 paper, for the above goal it is useful to split PT series into terms represented by `coupling activation diagrams'. One may then build VQAs by mapping those diagrams onto the unitary gates of the VQA. The efficiency of the resulting VQA is ensured by focusing on the diagrams which dominate the PT series. In this project, we will try to automate this whole procedure in a Python module.
+
+\subsection*{The timeline}
+
+Here's the approximate timeline for the project, starting 1st of March.
+
+\begin{itemize}
+\item 01/03-26/04 : getting the algorithm which (a) generates diagrams and (b) produces the VQAs.
+\item 15/04-15/05 : some basic physical applications for the algorithm, maybe some extras.
+\item 15/05-15/06 : writing the thesis.
+\end{itemize}
+
+\subsection*{The details of the algorithm}
+
+\subsubsection*{PT diagram generator}
+
+Here you can see some tips and explanations for the diagram generating part of the algorithm. First, let us briefly define here what do we mean by the `coupling activation diagrams'. Consider splitting the target Hamiltonian as $H=-\sum h_iZ_i+\sum^{N_c}_{\alpha=1} J_\alpha V_\alpha$, such that $V_\alpha$ are Pauli strings ($J_\alpha\ll h_i$). Then the PT series for the ground state $\ket{\Psi}$ can be organised as a Taylor series:
+\begin{equation}
+\ket{\Psi}(J_1,..J_{N_c})=\sum^\infty_{k_1,..k_{N_c}=0} J^{k_1}_1J^{k_2}_2..J^{k_{N_c}}_{N_c}\ket{\Psi}_{(k_1,..k_{N_c})},
+\end{equation}
+or, in an equivalent but more compact `vector power' notation:
+\begin{equation}
+\ket{\Psi}(\vec{J})=\sum_{\vec{k}}\vec{J}^{\cdot\vec{k}}\ket{\Psi}_{\vec{k}}.
+\label{eq:vector_power_Taylor}
+\end{equation}
+
+Combining the terms with fixed Manhattan length $|\vec{k}|\equiv k_1+k_2+..+k_{N_c}$, we get back to the standard PT with $|\vec{k}|$ being the PT order. The series in \eqref{eq:vector_power_Taylor}, however, is much more informative. The key property of separate terms $\ket{\Psi}_{\vec{k}}$ is that of being proportional to a computational basis state of a very specific form:
+\begin{equation}
+\ket{\Psi}_{\vec{k}}=C_{\vec{k}}\vec{V}^{\cdot\vec{k}}\ket{\vec{0}},
+\end{equation}
+
+where $C_{\vec{k}}$ is just some real-valued coefficient. This allows to think of $\vec{k}$ as certain `activation patterns' of the coupling terms $J_\alpha V_\alpha$. Specifically, pattern $\vec{k}=(k_1,..k_{N_c})$ implies that the coupling $J_1V_1$ is `activated' $k_1$ times, $J_2V_2$ -- $k_2$ times, etc. This pattern can be neatly depicted as a diagram. The diagrams can be classified as connected or disconnected. See the paper for more detailed explanations and illustrations.
+
+\textbf{Our goal is, given the Hamiltonian, to generate all leading order connected $\vec{k}$ up to certain $k=|\vec{k}|$}. The `leading order' property means that we ignore the patterns $\vec{k}$ which produce same states $\vec{V}^{\cdot\vec{k}}\ket{\vec{0}}$ while having a higher value of $|\vec{k}|$. The generated activation patterns $\vec{k}$ can then be used in constructing a VQA (see next subsection).
+
+\textbf{Tips} for generating the desired patterns:
+\begin{enumerate}
+\item Build them up incrementally, starting from $\vec{k}=\vec{0}$. First exhaust all $\vec{k}$ for $|\vec{k}|=1$, then for $|\vec{k}|=2$, etc.
+\item We'll only need to output the leading order connected contributions. \textbf{This allows to save resource also on the intermediate calculations.} Specifically, to find leading order connected contributions $\vec{k}$, you can ignore all disconnected contributions in the intermediate calculations (check if you agree!). However, you generally can't ignore the subleading connected contributions (do you agree? can you give an example of such a case?).
+\item Most useful information about the contribution is encoded in $\vec{k}$. So, there's no need to store and carry around the attributes of the pattern. Instead, realize them as separate functions of $\vec{k}$. This includes:
+\begin{enumerate}
+\item The computational basis state produced by the pattern, i.e. $\vec{V}^{\cdot\vec{k}}\ket{\vec{0}}\equiv\pm i^a\ket{\vec{s}}$ (input - $\vec{k}$, output - $a\in\{0,1\}$, $\vec{s}$) 
+\item The diagrammatic representation (input - $\vec{k}$, output - a graph)
+\item The connectedness of the contribution (input - $\vec{k}$, output - $\mathrm{Con}(\vec{k})=\mathrm{TRUE/FALSE}$); best is to find connectedness without building the graph of the diagram.
+\end{enumerate}
+\end{enumerate}
+
+\subsubsection*{Gate-diagram correspondence}
+
+Our VQA construction scheme includes a way of translating the PT diagrams into the VQA gates. We consider size-extensive schemes. There, one needs to introduce new gates only when representing leading order connected diagrams. Examples include: QCA, UCC, Trotterized-UCC. To be specific, let's focus on QCA. Others are important extras and should be coded, too -- if we have time.
+
+\textbf{To Tobias: more specifics will be added when you get here}
+
+\subsubsection*{The full VQA construction algorithm}
+
+\textbf{Input:} A Hamiltonian H for an interacting qubit system, whose ground state is to be produced by our variational algorithm. The number of parametrized gates $N_p$, which we allow for the VQA.
+
+\textbf{Output:} The VQA, represented as a list of gates $U_l(\theta_l)$ applied to the starting state: $\psi(\theta_l)=\prod_lU_l(\theta_l) \ket{\vec{0}}$.
+
+Elements of the algorithm:
+
+\begin{enumerate}
+\item Consider $k$-th order PT for the ground state of $H$. Generate all connected PT theory diagrams in that order. (start with $k=1$)
+
+\item Reproducing some of these new PT theory diagrams with a VQA may require including the corresponding gates $U_l(\theta_l)$. Include these new gates into the VQA. (initially the ansatz contains no gates)
+
+\item Repeat 1-2 for the higher PT order $k=k+1$, until the VQA has the desired total of $N_p$ gates.
+\end{enumerate} 
+
+\subsection*{Applications}
+\subsection*{Extras}
+
+\end{document}
