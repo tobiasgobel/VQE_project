@@ -1,0 +1,107 @@
+\documentclass[10pt, a4paper]{article}
+
+\usepackage{cmap} 
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amssymb, amsmath}
+\usepackage{amscd}
+\usepackage{graphicx}
+\usepackage[usenames]{color}
+\usepackage{braket}
+\usepackage{mathrsfs}
+\usepackage{enumerate}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+
+\def\setZ{{\mathbb{Z}}}
+\def\taumax{{\tau_{\mathrm{max}}}}
+\def\tr{{\mathrm{tr}}}
+\def\rhoin{{\rho_{\mathrm{in}}}}
+\def\rhofin{{\rho_{\mathrm{fin}}}}
+\def\blue{\textcolor{blue}}
+\def\red{\textcolor{red}}
+\def\green{\textcolor{green}}
+\def\yellow{\textcolor{yellow}}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm ,bindingoffset=0cm]{geometry}
+
+
+\begin{document}
+\section*{The project map for Tobias\\
+\small{by Yaroslav Herasymenko}}
+
+We're studying the VQE performance of CC-type ansatz hierarchies for many-qubit systems. We focus on the ansatz expressability for different problems of interest. 
+
+Each ansatz we consider is associated with some unitary $U(\vec{\theta})$ and is given by a state of the form:
+
+\begin{equation*}
+\ket{\Psi(\vec{\theta})}=U(\vec{\theta})\ket{\vec{0}}
+\end{equation*}
+
+The system Hamiltonians are always functions of coupling $J$ and are of the form:
+
+\begin{equation}
+H(J)=(1-J)~H_0+J~H_c,~~~H_0=-\sum_i Z_i,
+\end{equation}
+
+for some coupling Hamiltonian $H_c$ which characterizes the system at hand.
+
+\subsection*{Ansatzes}
+
+The ansatz structure roughly consists of the following:
+
+\begin{itemize}
+\item The \textbf{type} of the parent ansatz (how its generators and parameters are used)
+\item The actual \textbf{generators} used in the parent ansatz
+\item The \textbf{hierarchy} structure, which allows to keep only a part of $\vec{\theta}$ nonzero (truncated, `children' ansatzes).
+\end{itemize}
+
+We focus on comparing different ansatz \textbf{types}, so this is the point of biggest distinction between the structures we consider. Currently we're looking at the following ansatz types:
+
+\begin{itemize}
+\item UCC: $U(\vec{\theta})=\exp(i\sum_{\alpha}\theta_{\alpha}T_\alpha)$
+\item TUCC (Trotterized UCC): $U(\vec{\theta})=(\prod_{\alpha}\exp(i\frac{\theta_{\alpha}}{K}T_\alpha))^K$
+\item TUCC* ('unconstrained' Trotterized UCC): $U(\vec{\theta})=\prod_{\alpha,\mu}\exp(i\theta_{\alpha,\mu}T_\alpha)$
+\item QCA $U(\vec{\theta})=\prod_{\alpha}\exp(i\theta_{\alpha}T_\alpha)$
+\end{itemize}
+
+For the \textbf{generators} $T_{\alpha}$, there exist different choices people tend to use in these ansatz types. In this project, for the sake of uniformity, we fix this choice for all types to match that of QCA. This fits into the paradigm of UCCs as a viable special case. In this context, QCA can be viewed as a version of $K=1$ TUCC.
+
+The same uniformity is assumed in the \textbf{hierarchy} structure: for each ansatz, we use the QCA perturbative hierarchy.
+
+\subsection*{Physical systems}
+
+For the systems we consider, the main features are: size+locality, the coupling strength and the presence/absence of a gap. The first one defines the simplicity of the ansatz and the applicability of PT, the second and the third define the (naive) applicability of PT. PT applicability is the crucial feature, and (at least theoretically) it defines the relevance of UCC.
+
+We also have a hypothesis about the fourth, more subtle feature, that may give a less naive condition for the applicability of PT. Let's call it 'phase triviality'. That is, the ability to move $J$ from its target value to $J=0$ without closing the gap along the way. Even if the model is gapped, it may well not satisfy this more refined property. At the same time, even at large coupling, the model may be both gapped - and still be in a trivial phase.
+
+The models we are currently looking at, are all in 1D and are of the following types:
+\begin{itemize}
+\item Transverse-field Ising model, $H_c=\sum_i X_i X_{i+1}$
+\item Nontransverse-field Ising model, $H_c=\frac{1}{2}\sum_i (X_i+Z_i) (X_{i+1}+Z_{i+1})$
+\item Anisotropic Heisenberg model,  $H_c=\frac{1}{2}\sum_i (X_iX_{i+1}+Z_iZ_{i+1})$
+\end{itemize}
+
+For each such option, we consider three main options for the value of $J$: $J=0.2,~0.5$ and $0.8$. Among these models, all are essentially gapped, except for TFIM at $J=0.5$. Therefore, TFIM at $J=0.8$ is in the nontrivial phase, but the rest are all in the trivial phase (even at large values of coupling).
+
+\subsection*{Most pressing questions}
+
+\begin{itemize}
+\item How does TUCC* compare to the other ansatzes for the models at hand? Especially, large $J$ in the trivial phases.
+\item How to deal with the local minima in the optimization landscape?
+\item How to deal with the long simulation times?
+\item Circuit depth <-> precision. Order the operators so that the ansatz depth is minimized. (shouldn't be hard)
+\item Why do we have 'Trotter advantage'? Are we sure it's not a bug?
+\end{itemize}
+
+\subsection*{Less pressing questions}
+
+\begin{itemize}
+	\item How do the optimal angles look at large ($J=0.5,0.8$) couplings for the ansatzes with $>N$ parameters - say, $\sim2N$?
+	\item What if we move $J$ while incrementally modifying $\theta_{\alpha}$, as the optimization procedure? Under such procedure, how will angles change with $J$?
+	\item Can we explain TUCC* as TUCC with multi-qubit ops expanded using two-qubit ops? Can we use this technique to give a viable alternative?
+	\item Can we use Wei-Norman expansion and the results from the 'exact UCC' paper, anywhere in our work?
+\end{itemize}
+
+\end{document}
