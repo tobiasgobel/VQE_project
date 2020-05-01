@@ -114,19 +114,30 @@ For each such option, we consider three main options for the value of $J$: $J=0.
 
 \item Circuit depth <-> precision. Order the operators so that the ansatz depth is minimized. (shouldn't be too hard)
 
-\item When plotting the TUCC* angles, transform them to sums and differences for fixed generator types. You can try Walsh-Hadamard transform, or the following one which is arguably better (and generalizes to the amount of angles which is not a power of $2$):
-
+\item When plotting the TUCC* angles, transform them to sums and differences for fixed generator types. You can try Walsh-Hadamard transform, or the one below which can be argued for by using Campbell-Hausdorff analytics. For the example of gates 1-6-11-16 that we discussed in our call, the transformation would be:
 \begin{equation}
 \begin{pmatrix}
+\tilde{\theta}_1 \\
+\tilde{\theta}_6 \\
+\tilde{\theta}_{11} \\
+\tilde{\theta}_{16} 
+\end{pmatrix}=\begin{pmatrix}
 1 & 1 & 1 & 1\\
 1 & 1 & 1 & -1\\
 1 & 1 & -1 & -1 \\
 1 & -1 & -1 & -1
 \end{pmatrix}
+\begin{pmatrix}
+\theta_1 \\
+\theta_6 \\
+\theta_{11} \\
+\theta_{16} 
+\end{pmatrix}
 \end{equation}
 
+Of course, this ladder structure generalizes to any number of angles of interest.
 
-\textit{Some of the recent analysis I made, though, suggests that the linear transformations aren't suitable for most of the relevant structures that manifest. This includes the most basic ones, for instance those comparing a two-fold sequence of two interlayed generators against perturbation theory. By the way, the latter explains why the "repelling angle effect" stays only for one iteration. I'll tell you the details.}
+\textit{Some of the recent analysis I made, though, suggests that the linear transformations anyway aren't suitable for finding most of the relevant tendencies. This includes the most basic ones, for instance when comparing a two-fold sequence of two interlayed generators against perturbation theory. By the way, the latter explains why the "repelling angle effect" stays only for one iteration. I'll tell you the details.}
 
 \end{itemize}
 
@@ -135,7 +146,7 @@ For each such option, we consider three main options for the value of $J$: $J=0.
 \item Get a more thorough numerical confirmation of the `trivial phase' QCA dominance - more qubits? more parameters?
 \item Explore the scope of possible hybrid algorithms: different portions of QCA and TUCC*, TUCC* with the parent generators beyond 1st order PT.
 \item Write a code that will calculate the PT contributions $C$ (you can focus on connected, but preferrably both leading and subleading)
-\item (for Yaroslav:) In TUCC*, find a way to express the angles in terms of the contributions they produce (inverse nonlinear map). (tools - Taylor series, BCH formula) Seems to produce a nice tensorial structure: can we automate the symbolic generation of such structures?
+\item (for Yaroslav:) In TUCC*, find a way to express the angles in terms of the contributions they produce (inverse nonlinear map). (tools - Taylor series, Campbell-Hausdorff formula) Seems to produce a nice tensorial structure: can we automate the symbolic generation of such structures?
 \item (combining the above two): TUCC* starting guess from nonlinear approx to the PT.
 \end{itemize}
 
