@@ -14,6 +14,7 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{indentfirst}
+\usepackage{soul}
 
 \def\setZ{{\mathbb{Z}}}
 \def\taumax{{\tau_{\mathrm{max}}}}
@@ -28,16 +29,17 @@
 
 
 \begin{document}
-\section*{The project map for Tobias\\
-\small{by Yaroslav Herasymenko}}
+\section*{The VQE project map\\
+\small{Yaroslav Herasymenko, for Tobias Gobel}}
 
-We're studying the VQE performance of CC-type ansatz hierarchies for many-qubit systems. We focus on the ansatz expressability for different problems of interest. 
+We're studying the VQE performance of CC-type ansatz hierarchies for $N$-qubit systems. We focus on the ansatz expressability for different problems of interest. 
 
 Each ansatz we consider is associated with some unitary $U(\vec{\theta})$ and is given by a state of the form:
-
 \begin{equation*}
-\ket{\Psi(\vec{\theta})}=U(\vec{\theta})\ket{\vec{0}}
+\ket{\Psi(\vec{\theta})}=U(\vec{\theta})\ket{\vec{0}},
 \end{equation*}
+
+We create ansatzes as hierarchies of children ansatzes, created from a parent ansatz. For a parent ansatz $U(\vec{\theta})$, the children ansatzes $U'(\vec{\theta}')$ are created by fixing some $\theta_{\alpha}$ in $U$ to zero. The number of tunable parameters in each ansatz we will refer to as $D$.
 
 The system Hamiltonians are always functions of coupling $J$ and are of the form:
 
@@ -47,13 +49,15 @@ H(J)=(1-J)~H_0+J~H_c,~~~H_0=-\sum_i Z_i,
 
 for some coupling Hamiltonian $H_c$ which characterizes the system at hand.
 
-\subsection*{Ansatzes}
+\subsection*{The setup}
+
+\subsubsection*{Ansatzes}
 
 The ansatz structure roughly consists of the following:
 
 \begin{itemize}
 \item The \textbf{type} of the parent ansatz (how its generators and parameters are used)
-\item The actual \textbf{generators} used in the parent ansatz
+\item The \textbf{generators} choice for the parent ansatz
 \item The \textbf{hierarchy} structure, which allows to keep only a part of $\vec{\theta}$ nonzero (truncated, `children' ansatzes).
 \end{itemize}
 
@@ -61,47 +65,92 @@ We focus on comparing different ansatz \textbf{types}, so this is the point of b
 
 \begin{itemize}
 \item UCC: $U(\vec{\theta})=\exp(i\sum_{\alpha}\theta_{\alpha}T_\alpha)$
-\item TUCC (Trotterized UCC): $U(\vec{\theta})=(\prod_{\alpha}\exp(i\frac{\theta_{\alpha}}{K}T_\alpha))^K$
-\item TUCC* ('unconstrained' Trotterized UCC): $U(\vec{\theta})=\prod_{\alpha,\mu}\exp(i\theta_{\alpha,\mu}T_\alpha)$
+\item TUCC (Trotterized UCC): $U(\vec{\theta})=(\prod_{\alpha}\exp(i\frac{\theta_{\alpha}}{K}T_\alpha))^K$, typically implying a large $K$
+\item TUCC* ('unconstrained' Trotterized UCC): $U(\vec{\theta})=\prod_{\mu}\prod_{\alpha}\exp(i\theta_{\alpha,\mu}T_\alpha)$
 \item QCA $U(\vec{\theta})=\prod_{\alpha}\exp(i\theta_{\alpha}T_\alpha)$
 \end{itemize}
 
 For the \textbf{generators} $T_{\alpha}$, there exist different choices people tend to use in these ansatz types. In this project, for the sake of uniformity, we fix this choice for all types to match that of QCA. This fits into the paradigm of UCCs as a viable special case. In this context, QCA can be viewed as a version of $K=1$ TUCC.
 
-The same uniformity is assumed in the \textbf{hierarchy} structure: for each ansatz, we use the QCA perturbative hierarchy.
+The same uniformity is assumed in the \textbf{hierarchy} structure: for each ansatz, we use the QCA perturbative hierarchy (in $J$). Note the subtlety with TUCC*: unlike with TUCC, its `number of Trotter steps' increases the number of parameters. This means that there's no one-to-one correspondence between the generators of \textit{parent} TUCC* and QCA. One needs to take most meaningful generators when defining TUCC*, instead. Most of the time, we use the generators associated to QCA hierarchy, for instance $1$st order PT-associated generators. These are most local and most important, so make TUCC* a strong candidate.
 
-\subsection*{Physical systems}
+\subsubsection*{Physical systems}
 
-For the systems we consider, the main features are: size+locality, the coupling strength and the presence/absence of a gap. The first one defines the simplicity of the ansatz and the applicability of PT, the second and the third define the (naive) applicability of PT. PT applicability is the crucial feature, and (at least theoretically) it defines the relevance of UCC.
+In physical systems, the main parameters are: size+locality, the coupling strength and the presence/absence of a gap. The first one defines the simplicity of the ansatz and the applicability of PT, the second and the third define the (naive) applicability of PT. PT applicability is the crucial feature, and (at least theoretically) it defines the relevance of UCC.
 
-We also have a hypothesis about the fourth, more subtle feature, that may give a less naive condition for the applicability of PT. Let's call it 'phase triviality'. That is, the ability to move $J$ from its target value to $J=0$ without closing the gap along the way. Even if the model is gapped, it may well not satisfy this more refined property. At the same time, even at large coupling, the model may be both gapped - and still be in a trivial phase.
+We also have a hypothesis about the fourth, more subtle feature, that may give a less naive condition for the applicability of PT. Let's call it `phase triviality'. That is, the ability to move $J$ from its target value to $J=0$ without closing the gap along the way. Even if the model is gapped, it may well not satisfy this more refined property. At the same time, even at large coupling, the model may be both gapped - and in a trivial phase.
 
 The models we are currently looking at, are all in 1D and are of the following types:
 \begin{itemize}
-\item Transverse-field Ising model, $H_c=\sum_i X_i X_{i+1}$
-\item Nontransverse-field Ising model, $H_c=\frac{1}{2}\sum_i (X_i+Z_i) (X_{i+1}+Z_{i+1})$
-\item Anisotropic Heisenberg model,  $H_c=\frac{1}{2}\sum_i (X_iX_{i+1}+Z_iZ_{i+1})$
+\item Transverse-field Ising model (TFIM), $H_c=\sum_i X_i X_{i+1}$
+\item Nontransverse-field Ising model (NTFIM), $H_c=\frac{1}{2}\sum_i (X_i+Z_i) (X_{i+1}+Z_{i+1})$
+\item Anisotropic Heisenberg model (AHM),  $H_c=\frac{1}{2}\sum_i (X_iX_{i+1}+Z_iZ_{i+1})$
 \end{itemize}
 
 For each such option, we consider three main options for the value of $J$: $J=0.2,~0.5$ and $0.8$. Among these models, all are essentially gapped, except for TFIM at $J=0.5$. Therefore, TFIM at $J=0.8$ is in the nontrivial phase, but the rest are all in the trivial phase (even at large values of coupling).
 
-\subsection*{Most pressing questions}
+\subsection*{Results}
+\subsubsection*{More important results (in chronological/arbitrary order)}
 
 \begin{itemize}
-\item How does TUCC* compare to the other ansatzes for the models at hand? Especially, large $J$ in the trivial phases.
-\item How to deal with the local minima in the optimization landscape?
-\item How to deal with the long simulation times?
-\item Circuit depth <-> precision. Order the operators so that the ansatz depth is minimized. (shouldn't be hard)
-\item Why do we have 'Trotter advantage'? Are we sure it's not a bug?
+\item \textit{Ordered and chaotic optimal angle pattern.} In all ansatzes we consider, for small coupling $J$ and gate count $D$, the optimal angles follow a regular pattern. This regularity can typically be explained by PT and Campbell-Hausdorff formula. For large $J$ OR $D$ (it seems), this regularity usually breaks down, with all angles drifting astray. In TUCC* this is most extreme, with the angles often taking seemingly random values. 
+\item \textit{`Trivial phase' QCA dominance.} For the `trivial phase' models even at large J, QCA seems to outperform the rest of the options, including TUCC*. TUCC* seems to enter the `barren plateau' regime. This is confirmed by the angles chaos. We explain this through the cluster analysis idea.
+\item \textit{A hybrid TUCC*-QCA ansatz.} To `combine the power of non-linearities and perturbation theory', one can use a hybrid QCA-TUCC* ansatz. In many cases this happens to outperform both QCA and TUCC*!
 \end{itemize}
 
-\subsection*{Less pressing questions}
-
+\subsubsection*{Less important results}
 \begin{itemize}
-	\item How do the optimal angles look at large ($J=0.5,0.8$) couplings for the ansatzes with $>N$ parameters - say, $\sim2N$?
-	\item What if we move $J$ while incrementally modifying $\theta_{\alpha}$, as the optimization procedure? Under such procedure, how will angles change with $J$?
-	\item Can we explain TUCC* as TUCC with multi-qubit ops expanded using two-qubit ops? Can we use this technique to give a viable alternative?
-	\item Can we use Wei-Norman expansion and the results from the 'exact UCC' paper, anywhere in our work?
+\item \textit{"Trotter advantage".} TUCC at lower $K$ seems to be better than UCC. This is a consistent pattern for most models and most $K$, with the $K=1$ (QCA) typically doing the best of all $K$. As people prefer TUCC* to TUCC anyway, this curiosity is quite academic and isn't worth a publication on its own (but worth to mention as a side result).
+\end{itemize}
+
+\subsection*{Questions \& tasks}
+
+\subsubsection*{Easy and more important}
+\begin{itemize}
+\item \st{Store plotting data in files: e.g., `VQE\_project/plots/TFIM/J=0.8/TUCC\_K=5/angles' and plot it from files. Record all useful data (at least both angles and performances), when running each numerical experiment (even if you don't need this data at the moment)}
+\item Extend the numerical experiments to NTFIM (as defined above, (X+Z)(X+Z) model)
+\item \st{Do local optimization in substitute/in addition to global optimization, to speed up the process}
+\item \st{Do the angle plots for AHM (XX+ZZ model) at J=0.8 , to see if the TUCC* angles change during the optimization}
+
+\item Circuit depth <-> precision. Order the operators so that the ansatz depth is minimized. (shouldn't be too hard)
+
+\item When plotting the TUCC* angles, transform them to sums and differences for fixed generator types. You can try Walsh-Hadamard transform, or the following one which is arguably better (and generalizes to the amount of angles which is not a power of $2$):
+
+\begin{equation}
+\begin{pmatrix}
+1 & 1 & 1 & 1\\
+1 & 1 & 1 & -1\\
+1 & 1 & -1 & -1 \\
+1 & -1 & -1 & -1
+\end{pmatrix}
+\end{equation}
+
+
+\textit{Some of the recent analysis I made, though, suggests that the linear transformations aren't suitable for most of the relevant structures that manifest. This includes the most basic ones, for instance those comparing a two-fold sequence of two interlayed generators against perturbation theory. By the way, the latter explains why the "repelling angle effect" stays only for one iteration. I'll tell you the details.}
+
+\end{itemize}
+
+\subsubsection*{Hard and more important}
+\begin{itemize}
+\item Get a more thorough numerical confirmation of the `trivial phase' QCA dominance - more qubits? more parameters?
+\item Explore the scope of possible hybrid algorithms: different portions of QCA and TUCC*, TUCC* with the parent generators beyond 1st order PT.
+\item Write a code that will calculate the PT contributions $C$ (you can focus on connected, but preferrably both leading and subleading)
+\item (for Yaroslav:) In TUCC*, find a way to express the angles in terms of the contributions they produce (inverse nonlinear map). (tools - Taylor series, BCH formula) Seems to produce a nice tensorial structure: can we automate the symbolic generation of such structures?
+\item (combining the above two): TUCC* starting guess from nonlinear approx to the PT.
+\end{itemize}
+
+\subsubsection*{Hard and less important (for now)}
+\begin{itemize}
+
+\item Is there a better way to deal with the local minima in the optimization landscape?
+\item Is there a better way to deal with the long simulation times? / Set up the cluster simulations
+\item Why do we have a 'Trotter advantage'? Are we sure it's not a bug?
+\item Can we use Wei-Norman expansion and the results from the 'exact UCC' paper, anywhere in our work?
+\item What if we move $J$ while incrementally modifying $\theta_{\alpha}$, as the optimization procedure? Under such procedure, how will angles change with $J$?
+\item Can we learn a TUCC* representation of a QCA, somehow directly? (numerically - e.g. by optimization procedure, or analytically - by operator mappings?)
+
+\item Doing PT `from the other side', to show that a non-trivial gapped phase (like TFIM at large coupling) is also reachable for a proper QCA.
+
 \end{itemize}
 
 \end{document}
