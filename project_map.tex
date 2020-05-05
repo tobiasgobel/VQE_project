@@ -29,7 +29,7 @@
 
 
 \begin{document}
-\section*{The VQE project map\\
+\section*{The VQE project roadmap\\
 \small{Yaroslav Herasymenko, for Tobias Gobel}}
 
 We're studying the VQE performance of CC-type ansatz hierarchies for $N$-qubit systems. We focus on the ansatz expressability for different problems of interest. 
@@ -48,6 +48,18 @@ H(J)=(1-J)~H_0+J~H_c,~~~H_0=-\sum_i Z_i,
 \end{equation}
 
 for some coupling Hamiltonian $H_c$ which characterizes the system at hand.
+
+\subsection*{The question}
+
+In this work, we investigate the performance of different coupled-cluster-based VQEs. We specifically focus on the different Trotterization architectures, and what is the resulting performance of such VQEs in different models at strong coupling. Our main questions are:
+
+\begin{itemize}
+\item How different is the performance of UCC and its Trotterized relatives? Which are the main options for the architecture?
+\item Which Trotterization is better to use, given the model? How important is this choice?
+\item Can UCC-based ansatzes perform well at strong coupling? For gapped models? For gapless models? Which are the relevant criteria for good performance?
+\end{itemize}
+
+The working title of the thesis/paper is - "Physics of Trotterization in coupled cluster-based quantum ansatzes"
 
 \subsection*{The setup}
 
@@ -103,23 +115,58 @@ For each such option, we consider three main options for the value of $J$: $J=0.
 \item \textit{"Trotter advantage".} TUCC at lower $K$ seems to be better than UCC. This is a consistent pattern for most models and most $K$, with the $K=1$ (QCA) typically doing the best of all $K$. As people prefer TUCC* to TUCC anyway, this curiosity is quite academic and isn't worth a publication on its own (but worth to mention as a side result).
 
 \item The `Trotter advantage' extends further: even the angles optimized for UCC, give better performance when used in TUCC (each divided by $K$, naturally), rather then in UCC .
+
+\item The PT series in TFIM seems to be an asymptotic one (goes worse after it goes better). This statement is either false or famous, so I just put it here for our consideration.
 \end{itemize}
 
 \subsection*{Further questions \& tasks}
 
 \subsubsection*{Short-term}
 \begin{itemize}
-\item Extend the numerical experiments to NTFIM (as defined above, (X+Z)(X+Z) model)
 
-\item Check that the PT coefficients work: plot the energy of the PT state, as a function of the number of terms included in PT. 
-
-\textit{Also would be interesting to match against the ansatz performance. This however requires a tricky identification between the gate count and the number of PT terms included -- so maybe let's drop it for now.}
+\item Substantiate our hypothesis that the angle landscape of QCA is regular and TUCC* -- exponentially flat. Do so either by looking at the Hessian, or checking how much angles wander around without any progress. In the simplest and most optimistic scenario, the latter effect and the flat Hessian will occur simultaneously.
 
 \item Circuit depth <-> precision. Find out how to produce a "flattened" version of the ansatz, where multiplication order is such that the circuit depth is minimized. 
 
-\item To confirm our `barren plateaus' hypothesis about AHM J=0.8 behaviour of TUCC*, let's try to exclude the option that it gets lost in obscure regions of the landscape. Maybe, with zero starting angles it will do better? Let's try this as an alternative optimization routine for TUCC*, with starting angles set to zero independent of the gate count. Should probably do worse than what we do now, but just to be sure.
+\item Coupling-adapted optimization. What if we move $J$ while incrementally modifying $\theta_{\alpha}$, as the optimization procedure? Under such procedure, how will angles change with $J$? (Cluster analysis-inspired variational procedure)
 
 \item Set up the cluster access.
+
+\item Explore the scope of possible hybrid QCA-TUCC* algorithms: different portions of QCA and TUCC*, TUCC* with the parent generators beyond 1st order PT (2nd order?). Think how to improve our evidence that this a good ansatz and there's no random alternative which is better.
+
+\item For Yaroslav: build up some `cluster analysis'-type analytics which proves that the nonlocal gates aren't needed before the gap is closed.
+
+\item For Yaroslav: check the PT series code. (a) Check if the TFIM PT series is asymptotic, (b) Understand the code and (c) Check if ordering by the overall magnitude can make more sense than the power of $J^k$.
+
+\end{itemize}
+
+\subsubsection*{Long-term}
+\begin{itemize}
+
+
+
+\item Get a more thorough numerical confirmation of our general claims - more qubits? more parameters? More ansatzes and more models of the same `types' as those we consider, to check if our claims still apply? / may need cluster time / simple options: going to 2D, considering a range of Heisenberg anisotropies
+
+\item To use leading order PT coefficients as starting angles in QCA, write a routine that calculates leading-order backaction. The result can be used as starting angles for the variational procedure or fixed as the `perturbative part' in a hybrid QCA-TUCC* algorithm.
+
+\item For Yaroslav: maybe \textit{prove} that TUCC* is chaotic (either from `cluster analysis' or the nonlinear mapping)
+
+\end{itemize}
+
+\subsubsection*{Outside of our scope (for now)}
+\begin{itemize}
+
+\item Is there a better way to deal with the local minima in the optimization landscape?
+\item Is there a better way to deal with the long simulation times? / Set up the cluster simulations
+\item In TUCC*, find a way to express the angles in terms of the contributions they produce (inverse nonlinear map). (tools - Taylor series, Campbell-Hausdorff formula). Can we get the TUCC* starting guess using nonlinear approx to the PT?
+\item Why do we have a `Trotter advantage'? Are we sure it's not a bug?
+\item Can we use Wei-Norman expansion and the results from the `exact UCC' paper, anywhere in our work? Any other `cluster analysis' technique?
+
+\item Can we learn a TUCC* representation of a QCA, somehow directly? (numerically - e.g. by optimization procedure, or analytically - by operator mappings?)
+
+\item Perturbing from the `fully coupled side' ($J=1$), show that a non-trivial gapped phase (like TFIM at large coupling) is also reachable for a proper QCA.
+
+\item Check that the PT coefficients work. Also would be interesting to match PT against the ansatz performance. This however requires a tricky identification between the gate count and the number of PT terms included -- so maybe let's drop it for now.
 
 \item When plotting the TUCC* angles, transform them to sums and differences for fixed generator types. You can try Walsh-Hadamard transform, or the one below which can be argued for by using Campbell-Hausdorff analytics. For the example of gates 1-6-11-16 that we discussed in our call, the transformation would be:
 \begin{equation}
@@ -145,32 +192,6 @@ For each such option, we consider three main options for the value of $J$: $J=0.
 Of course, this ladder structure generalizes to any number of angles of interest.
 
 \textit{Some of the recent analysis I made, though, suggests that the linear transformations anyway aren't suitable for finding most of the relevant tendencies. This includes the most basic ones, for instance when comparing a two-fold sequence of two interlayed generators against perturbation theory. By the way, the latter explains why the "repelling angle effect" stays only for one iteration. I'll tell you the details.}
-
-\end{itemize}
-
-\subsubsection*{Long-term}
-\begin{itemize}
-
-\item Explore the scope of possible hybrid QCA-TUCC* algorithms: different portions of QCA and TUCC*, TUCC* with the parent generators beyond 1st order PT (2nd order?).
-
-\item To use leading order PT coefficients as starting angles in QCA, write a routine that calculates leading-order backaction. The result can be used as starting angles for the variational procedure or fixed as the `perturbative part' in a hybrid QCA-TUCC* algorithm.
-
-\item Get a more thorough numerical confirmation of our general claims - more qubits? more parameters? More ansatzes and more models of the same `types' as those we consider, to check if our claims still apply? / may need cluster time
-
-\end{itemize}
-
-\subsubsection*{Outside of our scope (for now)}
-\begin{itemize}
-
-\item Is there a better way to deal with the local minima in the optimization landscape?
-\item Is there a better way to deal with the long simulation times? / Set up the cluster simulations
-\item In TUCC*, find a way to express the angles in terms of the contributions they produce (inverse nonlinear map). (tools - Taylor series, Campbell-Hausdorff formula). Can we get the TUCC* starting guess using nonlinear approx to the PT?
-\item Why do we have a `Trotter advantage'? Are we sure it's not a bug?
-\item Can we use Wei-Norman expansion and the results from the `exact UCC' paper, anywhere in our work? Any other `cluster analysis' technique?
-\item What if we move $J$ while incrementally modifying $\theta_{\alpha}$, as the optimization procedure? Under such procedure, how will angles change with $J$?
-\item Can we learn a TUCC* representation of a QCA, somehow directly? (numerically - e.g. by optimization procedure, or analytically - by operator mappings?)
-
-\item Perturbing from the `fully coupled side' ($J=1$), show that a non-trivial gapped phase (like TFIM at large coupling) is also reachable for a proper QCA.
 
 \end{itemize}
 
