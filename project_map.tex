@@ -29,17 +29,21 @@
 
 
 \begin{document}
-\section*{The VQE project roadmap\\
+\section*{The physics of Trotterization in VQEs: the roadmap\\
 \small{Yaroslav Herasymenko, for Tobias Gobel}}
 
-We're studying the VQE performance of CC-type ansatz hierarchies for $N$-qubit systems. We focus on the ansatz expressability for different problems of interest. 
+\subsection*{An informal summary}
 
-Each ansatz we consider is associated with some unitary $U(\vec{\theta})$ and is given by a state of the form:
-\begin{equation*}
-\ket{\Psi(\vec{\theta})}=U(\vec{\theta})\ket{\vec{0}},
-\end{equation*}
+We investigate the VQE ansatz structures and their efficiency, specifically UCC-based ansatzes. We consider the following ingredients as key: the ansatz generators and the Trotterization scheme. These are most basic, and may be crucial for useful quantum advantage in the near future. Still, much is not known about how to do these choices in a best way.
 
-We create ansatzes as hierarchies of children ansatzes, created from a parent ansatz. For a parent ansatz $U(\vec{\theta})$, the children ansatzes $U'(\vec{\theta}')$ are created by fixing some $\theta_{\alpha}$ in $U$ to zero. The number of tunable parameters in each ansatz we will refer to as $D$.
+The generator choice in standard UCC theory is based on the perturbation theory. This can be extended to the Trotterized VQEs directly, essentially irrespectively of Trotterization scheme. With this principle, we build a Python module that finds most relevant generators, given the model. It does so up to a certain order in PT, determined by the number of generators requested.
+
+With generators assignment automated, we focus on studying the Trotterization schemes. We identify the two key principles that may be followed in such schemes: going up to higher-order generators (QCA) and recycling the lower-order ones (TUCC*). These choices are found to result in drastically different performances, with one or another being strongly preferred depending on the system. With a combination of analytical and numerical analysis, we identify the physics behind these differences. Based on this analysis, we provide (a) a system-adapted criterion for an efficient Trotterization choice, (b) a new, hybrid principle for the Trotterization choice, and (c) a special tuned-coupling variational scheme.
+
+\subsection*{The setup}
+
+
+\subsubsection*{Physical systems}
 
 The system Hamiltonians are always functions of coupling $J$ and are of the form:
 
@@ -49,72 +53,80 @@ H(J)=(1-J)~H_0+J~H_c,~~~H_0=-\sum_i Z_i,
 
 for some coupling Hamiltonian $H_c$ which characterizes the system at hand.
 
-\subsection*{The question}
+The main parameters of $H_c$ are as follows: size+locality, the coupling strength and the presence/absence of a gap. They define the applicability of PT, and influence the required complexity of the VQE ansatz. PT applicability is the crucial feature, as (at least theoretically) it defines the relevance of UCC.
 
-In this work, we investigate the performance of different coupled-cluster-based VQEs. We specifically focus on the different Trotterization architectures, and what is the resulting performance of such VQEs in different models at strong coupling. Our main questions are:
+We also have a hypothesis about the fourth, more subtle feature, that may give a less naive condition for the applicability of UCC. Namely, whether the system is `trivially gapped'. That is, if one can change $J$ from its target value to $J=0$ without closing the gap along the way. This may be satisfied even at large coupling, where PT is not directly gapped. But also note that not every gapped model is trivially gapped.
 
+The models we are currently looking at, are all in 1D and are of the following types:
 \begin{itemize}
-\item How different is the performance of UCC and its Trotterized relatives? Which are the main options for the architecture?
-\item Which Trotterization is better to use, given the model? How important is this choice?
-\item Can UCC-based ansatzes perform well at strong coupling? For gapped models? For gapless models? Which are the relevant criteria for good performance?
+	\item Transverse-field Ising model (TFIM), $H_c=\sum_i X_i X_{i+1}$
+	\item Nontransverse-field Ising model (NTFIM), $H_c=\frac{1}{2}\sum_i (X_i+Z_i) (X_{i+1}+Z_{i+1})$
+	\item Anisotropic Heisenberg model (AHM),  $H_c=\frac{1}{2}\sum_i (X_iX_{i+1}+Z_iZ_{i+1})$
 \end{itemize}
 
-The working title of the thesis/paper is - "Physics of Trotterization in coupled cluster-based quantum ansatzes"
+For each such option, we consider three main options for the value of $J$: $J=0.2,~0.5$ and $0.8$. Among these models, all are essentially gapped, except for TFIM at $J=0.5$. Therefore, TFIM at $J=0.8$ is in the nontrivial phase, but the rest are all in the trivial phase (even at large values of coupling).
 
-\subsection*{The setup}
+
+
+
 
 \subsubsection*{Ansatzes}
+
+ 
+ 
+Each ansatz we consider is associated with some unitary $U(\vec{\theta})$ and is given by a state of the form:
+\begin{equation*}
+\ket{\Psi(\vec{\theta})}=U(\vec{\theta})\ket{\vec{0}},
+\end{equation*}
+ 
+We create ansatzes as hierarchies of small children ansatzes, created from a parent ansatz. For a parent ansatz $U(\vec{\theta})$, the children ansatzes $U'(\vec{\theta}')$ are created by fixing some $\theta_{\alpha}$ in $U$ to zero. The choice of active parameters $\theta'_\alpha$ is typically based on perturbation theory. The number of tunable parameters in each ansatz we will refer to as $D$.
 
 The ansatz structure roughly consists of the following:
 
 \begin{itemize}
-\item The \textbf{type} of the parent ansatz (how its generators and parameters are used)
 \item The \textbf{generators} choice for the parent ansatz
 \item The \textbf{hierarchy} structure, which allows to keep only a part of $\vec{\theta}$ nonzero (truncated, `children' ansatzes).
-\end{itemize}
-
-We focus on comparing different ansatz \textbf{types}, so this is the point of biggest distinction between the structures we consider. Currently we're looking at the following ansatz types:
-
-\begin{itemize}
-\item UCC: $U(\vec{\theta})=\exp(i\sum_{\alpha}\theta_{\alpha}T_\alpha)$
-\item TUCC (Trotterized UCC): $U(\vec{\theta})=(\prod_{\alpha}\exp(i\frac{\theta_{\alpha}}{K}T_\alpha))^K$, typically implying a large $K$
-\item TUCC* ('unconstrained' Trotterized UCC): $U(\vec{\theta})=\prod_{\mu}\prod_{\alpha}\exp(i\theta_{\alpha,\mu}T_\alpha)$
-\item QCA $U(\vec{\theta})=\prod_{\alpha}\exp(i\theta_{\alpha}T_\alpha)$
+\item The \textbf{Trotterization scheme} of the parent ansatz (how its generators and parameters are used)
 \end{itemize}
 
 For the \textbf{generators} $T_{\alpha}$, there exist different choices people tend to use in these ansatz types. In this project, for the sake of uniformity, we fix this choice for all types to match that of QCA. This fits into the paradigm of UCCs as a viable special case. In this context, QCA can be viewed as a version of $K=1$ TUCC.
 
-The same uniformity is assumed in the \textbf{hierarchy} structure: for each ansatz, we use the QCA perturbative hierarchy (in $J$). Note the subtlety with TUCC*: unlike with TUCC, its `number of Trotter steps' increases the number of parameters. This means that there's no one-to-one correspondence between the generators of \textit{parent} TUCC* and QCA. One needs to take most meaningful generators when defining TUCC*, instead. Most of the time, we use the generators associated to QCA hierarchy, for instance $1$st order PT-associated generators. These are most local and most important, so make TUCC* a strong candidate.
+The same uniformity is assumed in the \textbf{hierarchy} structure: for each ansatz, we use the QCA perturbative hierarchy (in $J$).
 
-\subsubsection*{Physical systems}
+We focus on comparing different \textbf{Trotterization schemes}, so this is the point of biggest distinction between our ansatzes. Currently we're looking at the following ansatz types:
 
-In physical systems, the main parameters are: size+locality, the coupling strength and the presence/absence of a gap. The first one defines the simplicity of the ansatz and the applicability of PT, the second and the third define the (naive) applicability of PT. PT applicability is the crucial feature, and (at least theoretically) it defines the relevance of UCC.
-
-We also have a hypothesis about the fourth, more subtle feature, that may give a less naive condition for the applicability of PT. Let's call it `phase triviality'. That is, the ability to move $J$ from its target value to $J=0$ without closing the gap along the way. Even if the model is gapped, it may well not satisfy this more refined property. At the same time, even at large coupling, the model may be both gapped - and in a trivial phase.
-
-The models we are currently looking at, are all in 1D and are of the following types:
 \begin{itemize}
-\item Transverse-field Ising model (TFIM), $H_c=\sum_i X_i X_{i+1}$
-\item Nontransverse-field Ising model (NTFIM), $H_c=\frac{1}{2}\sum_i (X_i+Z_i) (X_{i+1}+Z_{i+1})$
-\item Anisotropic Heisenberg model (AHM),  $H_c=\frac{1}{2}\sum_i (X_iX_{i+1}+Z_iZ_{i+1})$
-\end{itemize}
+\item UCC: $U(\vec{\theta})=\exp(i\sum_{\alpha}\theta_{\alpha}T_\alpha)$
 
-For each such option, we consider three main options for the value of $J$: $J=0.2,~0.5$ and $0.8$. Among these models, all are essentially gapped, except for TFIM at $J=0.5$. Therefore, TFIM at $J=0.8$ is in the nontrivial phase, but the rest are all in the trivial phase (even at large values of coupling).
+This is the basic choice which one would use for classical numerics. For near-term digital quantum computers, it's not well-suited as it's not Trotterized. However, it's a good reference.
+\item TUCC (Trotterized UCC): $U(\vec{\theta})=(\prod_{\alpha}\exp(i\frac{\theta_{\alpha}}{K}T_\alpha))^K$
+
+This typically implies a large $K$. We can use this as a reference to try and identify the `Trotter error' of the approximation. However, this is still not practical as multiple gates are constrained to have the same angle. 
+\item TUCC* ('unconstrained' Trotterized UCC): $U(\vec{\theta})=\prod^K_{\mu=1}\prod_{\alpha}\exp(i\theta_{\alpha,\mu}T_\alpha)$
+
+Note the subtlety: unlike with TUCC, the number of parameters $\#(\theta_{\alpha,\mu})$ is the multiple of the number of generators $\#(T_\alpha)$. Specifically, $\#(\theta_{\alpha,\mu})=K\cdot\#(T)$. Therefore, here one focuses on using a few good generators, while increasing $\#(\theta_{\alpha,\mu})$ by \textbf{recycling} the generators, i.e. increasing $K$. As the generators we'll use the ones from QCA hierarchy, e.g. $1$st order PT-associated generators.
+
+\item QCA $U(\vec{\theta})=\prod_{\alpha}\exp(i\theta_{\alpha}T_\alpha)$
+
+Here, $K=1$ so the gates aren't wasted, which is an improvement over TUCC. However, QCA doesn't recycle the low-order generators like TUCC* does. Instead, it \textbf{goes up} by including higher PT orders for generator assignment. The advantage is that the size-extensivity theorems hold for this ansatz. Those are the basis of the warranted UCC performance, and they happen to apply for QCA as well.
+
+\item Any intermediate options between QCA and TUCC*. Basically the two tendencies are to \textbf{go up} in generators or \textbf{recycle} them, and we can try to find a combination that involves both.
+\end{itemize}
 
 \subsection*{Results}
 \subsubsection*{More important results (in chronological/arbitrary order)}
 
 \begin{itemize}
-\item \textit{Ordered and chaotic optimization landscape.} In all ansatzes we consider, for small coupling $J$ and gate count $D$, the optimal angles take values that form a regular pattern. This regularity can typically be explained by PT and Campbell-Hausdorff formula. For large $J$, this regularity usually breaks down, with optimal angles drifting astray as we add more gates to the ansatz. In TUCC* this is most extreme, with the angles often taking seemingly random values. 
-\item \textit{`Trivial phase' QCA dominance.} For the `trivial phase' models even at large J, QCA seems to outperform the rest of the options, including TUCC*. TUCC* seems to enter the `barren plateau' regime. This is confirmed by the chaos in optimal angles. We explain this through the cluster analysis idea.
+\item \textit{Ordered and chaotic optimization landscape.} In all ansatzes we consider, for small coupling $J$ and gate count $D$, the optimal angles form regular patterns. We managed to explain this regularity by PT and Campbell-Hausdorff formula. For large $J$, this regularity usually breaks down, with optimal angles drifting astray as we add more gates to the ansatz. In TUCC* this is most extreme, with the angles often taking seemingly random values. 
+\item \textit{`Trivially gapped' QCA dominance.} For the `trivially gapped' models even at large J, QCA seems to outperform the rest of the options, including TUCC*. TUCC* seems to enter the `barren plateau' regime. This is confirmed by the chaos in optimal angles which is observed without any performance improvement. We explain this through the tunable-coupling cluster analysis.
 \item \textit{A hybrid TUCC*-QCA ansatz.} To `combine the power of non-linearities and perturbation theory', one can use a hybrid QCA-TUCC* ansatz. In many cases this happens to outperform both QCA and TUCC*!
 \end{itemize}
 
 \subsubsection*{Less important results}
 \begin{itemize}
-\item \textit{"Trotter advantage".} TUCC at lower $K$ seems to be better than UCC. This is a consistent pattern for most models and most $K$, with the $K=1$ (QCA) typically doing the best of all $K$. As people prefer TUCC* to TUCC anyway, this curiosity is quite academic and isn't worth a publication on its own (but worth to mention as a side result).
+\item \textit{"Trotter advantage".} Somewhat surprisingly, TUCC at lower $K$ seems to be better than UCC. This is a consistent pattern for most models and most $K$, with the $K=1$ (QCA) typically doing the best of all $K$. As people prefer TUCC* to TUCC anyway, this curiosity is quite academic and isn't worth a publication on its own (but worth to mention as a side result).
 
-\item The `Trotter advantage' extends further: even the angles optimized for UCC, give better performance when used in TUCC (each divided by $K$, naturally), rather then in UCC .
+\item The `Trotter advantage' extends further: even the angles optimized for UCC, give better performance when used in TUCC (each divided by $K$, naturally), rather then in UCC . This is extremely weird and needs to be thoroughly checked, if we want to include this.
 
 \item The PT series in TFIM seems to be an asymptotic one (goes worse after it goes better). This statement is either false or famous, so I just put it here for our consideration.
 \end{itemize}

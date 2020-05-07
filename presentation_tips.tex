@@ -1,0 +1,93 @@
+\documentclass[10pt, a4paper]{article}
+
+\usepackage{cmap} 
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amssymb, amsmath}
+\usepackage{amscd}
+\usepackage{graphicx}
+\usepackage[usenames]{color}
+\usepackage{braket}
+\usepackage{mathrsfs}
+\usepackage{enumerate}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{soul}
+
+\def\setZ{{\mathbb{Z}}}
+\def\taumax{{\tau_{\mathrm{max}}}}
+\def\tr{{\mathrm{tr}}}
+\def\rhoin{{\rho_{\mathrm{in}}}}
+\def\rhofin{{\rho_{\mathrm{fin}}}}
+\def\blue{\textcolor{blue}}
+\def\red{\textcolor{red}}
+\def\green{\textcolor{green}}
+\def\yellow{\textcolor{yellow}}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm ,bindingoffset=0cm]{geometry}
+
+
+\begin{document}
+\section*{The physics of Trotterization in VQEs: presentation tips\\
+\small{Yaroslav Herasymenko, for Tobias Gobel}}
+
+
+Naturally, all of what's written in this file are just recommendations, so feel free to do something differently if you have a better idea.
+
+\subsection*{The informal summary}
+
+We investigate the VQE ansatz structures and their efficiency, specifically UCC-based ansatzes. We consider the following ingredients as key: the ansatz generators and the Trotterization scheme. These are most basic, and may be crucial for useful quantum advantage in the near future. Still, much is not known about how to do these choices in a best way.
+
+The generator choice in standard UCC theory is based on the perturbation theory. This can be extended to the Trotterized VQEs directly, essentially irrespectively of Trotterization scheme. With this principle, we build a Python module that finds most relevant generators, given the model. It does so up to a certain order in PT, determined by the number of generators requested.
+
+With generators assignment automated, we focus on studying the Trotterization schemes. We identify the two key principles that may be followed in such schemes: going up to higher-order generators (QCA) and recycling the lower-order ones (TUCC*). These choices are found to result in drastically different performances, with one or another being strongly preferred depending on the system. With a combination of analytical and numerical analysis, we identify the physics behind these differences. Based on this analysis, we provide (a) a system-adapted criterion for an efficient Trotterization choice, (b) a new, hybrid principle for the Trotterization choice, and (c) a special tuned-coupling variational scheme.
+
+\subsection*{Some general tips}
+
+Given how many results you have, a half an hour presentation is challenging. This means you should focus on getting only the summary points across, and use just the minimal resource. This is a hard task that takes creativity. Ideally, you will illustrate each point by a single good example. At the same time, there should be some clear logic in the way you move from one point to another, such that the reader is motivated to follow. For each point, ask yourself - will the viewer care about it, and will they will understand it?
+
+For the large-scale structure of your presentation, maybe `Introduction'-`Result 1: Diagrammatic VQE module'-`Result 2: Trotterization physics in VQEs' makes most sense. The third one will probably be the fattest, so I'd allocate time as 7 min - 7 min - 15 min. 
+
+\subsection*{The structure \& key points}
+
+\begin{enumerate}
+\item Introduction
+\begin{enumerate}
+	\item Which problem we want to solve (ground state finding; focus on spin systems)
+	\item What is a VQE and VQE ansatz
+	\item UCC ansatz (most general, un-Trotterized)
+	\item In practice, you have to (a) choose just some generators, not all possible (b) Trotterize, to turn it into a circuit
+	\item The presentation is about some results in these two aspects
+\end{enumerate}
+
+\item Diagrammatic VQE module
+
+\begin{enumerate}
+	\item Generator choice: by PT. This is a normal part of UCC paradigm, just adapted to this context.
+	\item Example PT diagrams, and associated generators (a table, with rows being the PT contributions?). TFIM for N=3 up to second order? (s.t. it's not too much)
+	\item We're interested in leading order connected diagrams only (illustrate with the simple diagrams, what that means?)
+	\item The module: what it inputs, what it outputs
+	\item Some generic examples of module outputs - the diagrams and the generators
+\end{enumerate}
+
+\item Physics of Trotterization. See how much of this can be squeezed in 15 minutes, probably you can't include all. On the other hand, note that some well-made slides can be explained in 15 seconds in a way that actually works.
+
+\begin{enumerate}
+	\item Two basic options: QCA and TUCC* (disregard TUCC to save time). The two basic tendencies represented.
+	\item Our questions - given the model, which approach is better? How important is this choice and what is the criterion for it?
+	\item Three examples in compared performances: weakly-coupled model, strongly coupled but gapless model, strongly coupled but gapped model. (single plot each)
+	\item The hypothesis: QCA `straight shooter', TUCC* `chaotic searcher'.
+	\item Diagnostic tool: angles behaviour. Angle order and disorder, `barren plateaus chaotic search' for TUCC* in the gapped model. Maybe mention the associated PT+Campbell-Hausdorff analytics.
+	\item Diagnostic tool: the Hessian, flat or not. - landscape flatness
+	\item Diagnostic tool: entanglement threshold, QCA goes outside easily, TUCC* covers well the inside.
+	\item Diagnostic tool: tuned-coupling optimization, angles dynamics. `phase transitions' in the angles at certain couplings.  Maybe mention the associated tuned-coupling analytics
+	\item A hybrid `shoot \& search' ansatz, its performance dominance in all the regimes.
+	\item Tuned-coupling optimization as a different (more efficient?) optimization procedure.
+\end{enumerate}
+
+\end{enumerate}
+
+
+
+\end{document}
