@@ -35,6 +35,8 @@
 
 Naturally, all of what's written in this file are just recommendations, so feel free to do something differently if you have a better idea.
 
+Legend: \blue{new}, \st{completed}.
+
 \subsection*{The informal summary}
 
 We investigate the VQE ansatz structures and their efficiency, specifically UCC-based ansatzes. We consider the following ingredients as key: the ansatz generators and the Trotterization scheme. These are most basic, and may be crucial for useful quantum advantage in the near future. Still, much is not known about how to do these choices in a best way.
@@ -74,9 +76,9 @@ For the large-scale structure of your presentation, maybe `Introduction'-`Result
 \item Physics of Trotterization. See how much of this can be squeezed in 15 minutes, probably you can't include all. On the other hand, note that some well-made slides can be explained in 15 seconds in a way that actually works.
 
 \begin{enumerate}
-	\item Two basic options: QCA and TUCC* (disregard TUCC to save time). The two basic tendencies represented.
+	\item Two basic options: QCA and TUCC* (disregard TUCC to save time). The two basic tendencies represented. \blue{Illustration slide: 4-qubit circuit schemes (or just unitaries): a 6-gate QCA and a 6-gate TUCC*.}
 	\item Our questions - given the model, which approach is better? How important is this choice and what is the criterion for it?
-	\item Three examples in compared performances: weakly-coupled model, strongly coupled but gapless model, strongly coupled but gapped model. (single plot each)
+	\item Three examples in compared performances: weakly-coupled model, strongly coupled but gapless model, strongly coupled but gapped model. (single plot each) \blue{Do include spectral plots demonstratng what 'gapped' and 'gapless' means. However, probably avoid the discussion of `trivially gapped' vs. `gapped', so that the message is simply formulated.}
 	\item The hypothesis: QCA `straight shooter', TUCC* `chaotic searcher'.
 	\item Diagnostic tool: angles behaviour. Angle order and disorder, `barren plateaus chaotic search' for TUCC* in the gapped model. Maybe mention the associated PT+Campbell-Hausdorff analytics.
 	\item Diagnostic tool: the Hessian, flat or not. - landscape flatness

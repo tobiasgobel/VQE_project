@@ -32,6 +32,8 @@
 \section*{The physics of Trotterization in VQEs: the roadmap\\
 \small{Yaroslav Herasymenko, for Tobias Gobel}}
 
+Legend: \blue{new}, \st{completed}.
+
 \subsection*{An informal summary}
 
 We investigate the VQE ansatz structures and their efficiency, specifically UCC-based ansatzes. We consider the following ingredients as key: the ansatz generators and the Trotterization scheme. These are most basic, and may be crucial for useful quantum advantage in the near future. Still, much is not known about how to do these choices in a best way.
@@ -137,7 +139,13 @@ Here, $K=1$ so the gates aren't wasted, which is an improvement over TUCC. Howev
 \subsubsection*{Short-term}
 \begin{itemize}
 
-\item Substantiate our hypothesis that the angle landscape of QCA is regular and TUCC* -- exponentially flat. Do so either by looking at the Hessian, or checking how much angles wander around without any progress. In the simplest and most optimistic scenario, the latter effect and the flat Hessian will occur simultaneously.
+\item \blue{Check for flat Hessians in the TUCC* landscape, using the exact Hessian calculation}
+
+\item \blue{Do basinhopping with 2 or 3 hoppings, to check for wiggles in UCC performance}
+
+\item \blue{Try different local optimization methods to improve speed \& quality of the resulting energy. SLSQP?}
+
+\item \blue{Accumulate nfev when doing tuned-coupling optimization and fixed-coupling optimization, to check whether there is a performance improvement from tuned-coupling optimization. Before presentation, do it just for a single case each}
 
 \item Coupling-adapted optimization. Include the performance plots as well as the angle plots. Expand the simulations to AHM and TFIM.
 
