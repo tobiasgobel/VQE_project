@@ -1,0 +1,115 @@
+\documentclass[10pt, a4paper]{article}
+
+\usepackage{cmap} 
+\usepackage[T2A]{fontenc}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amssymb, amsmath}
+\usepackage{amscd}
+\usepackage{graphicx}
+\usepackage[usenames]{color}
+\usepackage{braket}
+\usepackage{mathrsfs}
+\usepackage{enumerate}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{soul}
+
+\def\setZ{{\mathbb{Z}}}
+\def\taumax{{\tau_{\mathrm{max}}}}
+\def\tr{{\mathrm{tr}}}
+\def\rhoin{{\rho_{\mathrm{in}}}}
+\def\rhofin{{\rho_{\mathrm{fin}}}}
+\def\blue{\textcolor{blue}}
+\def\red{\textcolor{red}}
+\def\green{\textcolor{green}}
+\def\yellow{\textcolor{yellow}}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm ,bindingoffset=0cm]{geometry}
+
+
+\begin{document}
+\section*{The physics of Trotterization in VQEs: writing tips\\
+\small{Yaroslav Herasymenko, for Tobias Gobel}}
+
+
+Naturally, all of what's written in this file are just recommendations. Feel free to do something differently if you have a better idea or if you want to explore. 
+
+Apart from my own experience, the content of this file is based on the tips I've been receiving from senior colleagues and at the writing courses. Most notably, it is the course "The Art of Scientific Writing" for NWO Ph.D. students.
+
+Legend: \blue{new}, \st{lost relevance}.
+
+\subsection*{The process}
+
+Here are some tips about writing in general. They'd be relevant for your thesis but also for the future.
+
+
+\subsubsection*{Workflow recommendations}
+
+Some general points about the writing workflow. I always find it useful to come back and remind myself about these.
+
+\begin{itemize}
+\item \textit{Plan your work}
+
+Basically, scale your writing from top to down. For every major piece, have a sketch of it before diving into the details. Also, plan your time, so that you have concrete items on your to-do list.
+
+\item \textit{Do one thing at a time}
+
+Imagine you have a sketch, and a to-do list of how to fill the gaps in that sketch. How should this list look like? Its typical items would be - write a paragraph, edit this, edit that (the logic, the long sentences, the grammar etc). Don't include many activities into one item. Multi-tasking is a myth. If anything, at least separate editing from writing.
+
+\item \textit{Know the next step}
+
+Don't think about the big picture when implementing the to-do items. Instead, keep in mind what you're doing right now and know what your next step will be. The major chunk of writing frustration comes from not being sure about your direction. So, it's really important to maintain and follow your to-do list.
+
+\item \textit{Think as little as possible}
+
+So, you separated your tasks into planning, writing and editing. Make sure this left you little room to think. Whenever you want to think about something - write about it instead.
+
+\item \textit{You're writing a story}
+
+This is more crucial for the paper than for the thesis. However, now it's good practice, and also a preparation for the paper. The main point: you're writing a story, and it should be interesting. So, you should make sure that the work is both useful and exciting for as many people as possible. Also, the crucial logical connections should be clearly presented. For each point, ask yourself - will the reader care about it, and will they understand it?
+\end{itemize}
+
+\subsubsection*{Sentences and paragraphs}
+
+My tips about writing sentences and paragraphs will be as follows:
+
+\begin{itemize}
+	\item Make sentences simple. This includes trying to make them shorter and splitting larger sentences in halves. Each sentence should convey a single idea and not more.
+	\item Try to maintain some variety. A bunch of sentences with similar size and structure are hard to read even if they're short. On the other hand, even a 5-word sentence can be useful.
+	\item The main sentences in a paragraph are the first sentence and the last one. They are most worth polishing.
+	\item Avoid dense writing. Even a full sentence that makes a semi-trivial point is not necessarily a bad idea. In the middle of a technically hard read, such passage can be a godsend. 
+\end{itemize}
+
+\subsection*{The content}
+
+Some points that are closer to this actual thesis' content.
+
+\subsubsection*{The sketch of the thesis}
+
+Naturally, the most basic, largest scale structure of your thesis is: Introduction - Methods - Results - Discussion/Conclusion.
+
+On the scale of concrete sections -- you can start with what you had in your presentation slides. On this scale you will confront the main questions about your message and your storyline. Some things to take care of are:
+\begin{itemize}
+\item The basic players (e.g., the models and the ansatzes) may be better introduced before talking about the Python module.
+\item Some extra things can of course be included, even if not directly necessary for the story. Some of them can go into Appendices.
+\end{itemize}
+
+The next scale is `paragraph skeleton'. So, a sentence per paragraph, each describing the idea you will convey in that paragraph. Here, again, many storyline-related questions will be resolved. Some of the things to pay attention to:
+\begin{itemize}
+\item (In the Introduction) What is our research question?
+\item (In the Introduction) What are our main contributions to this question?
+\item (In the Introduction, more for Yaroslav) What is our context in the literature?
+\end{itemize}
+
+\subsubsection*{The message (same summary as in the other files)}
+
+This is the summary of the questions \& and results from this project. As I see it if you get these points across, you win.
+
+We investigate the VQE ansatz structures and their efficiency, specifically UCC-based ansatzes. We consider the following ingredients as key: the ansatz generators and the Trotterization scheme. These are most basic, and may be crucial for useful quantum advantage in the near future. Still, much is not known about how to do these choices in a best way.
+
+The generator choice in standard UCC theory is based on the perturbation theory. This can be extended to the Trotterized VQEs directly, essentially irrespectively of Trotterization scheme. With this principle, we build a Python module that finds most relevant generators, given the model. It does so up to a certain order in PT, determined by the number of generators requested.
+
+With generators assignment automated, we focus on studying the Trotterization schemes. We identify the two key principles that may be followed in such schemes: going up to higher-order generators (QCA) and recycling the lower-order ones (TUCC*). These choices are found to result in drastically different performances, with one or another being strongly preferred depending on the system. With a combination of analytical and numerical analysis, we identify the physics behind these differences. Based on this analysis, we provide (a) a system-adapted criterion for an efficient Trotterization choice, (b) a new, hybrid principle for the Trotterization choice, and (c) a special tuned-coupling variational scheme.
+
+\end{document}
