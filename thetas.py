@@ -700,7 +700,21 @@ class theta_eqs:
 
         self.log(f'Equations solved in: {time.time()-stopwatch} seconds,\n The equations are solved with precision:  {sum(self.equation_system(self.theta_k_values)**2)} \n, The solutions are returned and also stored in self.theta_k_values', True)
         
-        return(self.theta_k_values)
+        self.theta_values=[0 for theta_label in range(len(self.unitary_generators))]
+
+        for contribution_number in range(len(self.theta_k_variable_list)):
+
+            contribution_label=self.theta_k_variable_list[contribution_number]
+
+            theta_index=contribution_label[0]
+
+            degree_of_PT=contribution_label[1][0]
+
+            contribution_value=self.theta_k_values[contribution_number]
+
+            self.theta_values[theta_index]+=contribution_value*self.J**degree_of_PT
+        
+        return(self.theta_values)
     
 # Tools and functions
 
