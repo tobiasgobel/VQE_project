@@ -686,22 +686,13 @@ class theta_eqs:
 
         return(np.array(list_of_eq_values, dtype='float'))
     
-    def equation_solving (self):
+    def theta_k_to_theta_values(self):
         
-        stopwatch=time.time()
         
-
-
+        #assumes that self.theta_k_values already exists
         
-
-        self.theta_k_values=optimize.minimize(lambda theta: sum(self.equation_system(theta)**2), np.array([0 for k_theta in self.theta_k_variable_list])).x
-
-        # theta_k_values=optimize.leastsq(equation_system, np.array([0 for k_theta in theta_k_variable_list]))[0]
-
-        self.log(f'Equations solved in: {time.time()-stopwatch} seconds,\n The equations are solved with precision:  {sum(self.equation_system(self.theta_k_values)**2)} \n, The solutions are returned and also stored in self.theta_k_values', True)
+        theta_values=[0 for theta_label in range(len(self.unitary_generators))]
         
-        self.theta_values=[0 for theta_label in range(len(self.unitary_generators))]
-
         for contribution_number in range(len(self.theta_k_variable_list)):
 
             contribution_label=self.theta_k_variable_list[contribution_number]
@@ -712,7 +703,25 @@ class theta_eqs:
 
             contribution_value=self.theta_k_values[contribution_number]
 
-            self.theta_values[theta_index]+=contribution_value*self.J**degree_of_PT
+            theta_values[theta_index]+=contribution_value*self.J**degree_of_PT
+        
+        return(theta_values)
+        
+    
+    def equation_solving (self):
+        
+        stopwatch=time.time()
+
+        self.theta_k_values=optimize.minimize(lambda theta_ks: sum(self.equation_system(theta_ks)**2), np.array([0 for k_theta in self.theta_k_variable_list]), method='SLSQP', bounds=tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) )) ).x
+        
+        
+        self.log(f'The bounds are: {tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) ))}', True)
+#         self.theta_k_values=optimize.leastsq(self.equation_system, np.array([0 for k_theta in self.theta_k_variable_list]))[0]
+
+        self.log(f'Equations solved in: {time.time()-stopwatch} seconds,\n The equations are solved with precision:  {sum(self.equation_system(self.theta_k_values)**2)} \n, The solutions are returned and also stored in self.theta_values', True)
+        
+        self.theta_values=self.theta_k_to_theta_values()
+        
         
         return(self.theta_values)
     
