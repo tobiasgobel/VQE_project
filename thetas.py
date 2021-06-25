@@ -719,11 +719,16 @@ class theta_eqs:
         return(theta_values)
         
     
-    def equation_solving (self, option='non-weighted'):
+    def equation_solving (self, option='non-weighted', minimizer_option='local'):
         
         stopwatch=time.time()
-
-        self.theta_k_values=optimize.minimize(lambda theta_ks: sum(self.equation_system(theta_ks, option)**2), np.array([0 for k_theta in self.theta_k_variable_list]), method='SLSQP', bounds=tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) )) ).x
+        if minimizer_option=='local':
+            self.theta_k_values=optimize.minimize(lambda theta_ks: sum(self.equation_system(theta_ks, option)**2), np.array([0 for k_theta in self.theta_k_variable_list]), method='SLSQP', bounds=tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) )) ).x
+        elif minimizer_option=='global':
+            self.theta_k_values=optimize.basinhopping(lambda theta_ks: sum(self.equation_system(theta_ks, option)**2), np.array([0 for k_theta in self.theta_k_variable_list]), minimizer_kwargs={'method': 'SLSQP', 'bounds': tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list)))}, niter= 3, stepsize = 5 ).x
+        else:
+            
+            raise Exception('minimizer_option not recognized!')
         
 #         self.theta_k_values=optimize.leastsq(self.equation_system, np.array([0 for k_theta in self.theta_k_variable_list]))[0]
         
