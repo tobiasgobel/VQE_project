@@ -664,20 +664,31 @@ class theta_eqs:
         return(None)
     
         
-    def equation_system(self, theta_k_values):
+    def equation_system(self, theta_k_values, option='non-weighted'):
 
 #     For some reason ignoring the J**K weight during the optimization is sometimes beneficial from the perspective of the
 #     _weighted_ function. I will comment this part out for now, but we may look at it in closer detail later.
 
-        list_of_eq_values=[np.abs(self.theta_function(theta_k_values, self.f_dict_for_eq[equation], self.theta_k_variable_list)
-                     - self.eq_adapted_C_series[equation])  
+
+
+        if option=='non-weighted':
+    
+            list_of_eq_values=[np.abs(self.theta_function(theta_k_values, self.f_dict_for_eq[equation], self.theta_k_variable_list)
+                         - self.eq_adapted_C_series[equation])  
+                               for equation in self.list_of_equations]
+        
+        elif option=='weighted':
+            
+            list_of_eq_values=[np.abs(self.theta_function(theta_k_values, self.f_dict_for_eq[equation], self.theta_k_variable_list)
+                     - self.eq_adapted_C_series[equation])  * (self.J**eval(re.search('K = \[(.+?)\]',equation).group(1)) )
                            for equation in self.list_of_equations]
+        else:
+            
+            raise Exception('Option not recognised!')
 
     #   "eval(re.search('K = \[(.+?)\]',equation).group(1))" is the value of K in the equation
 
-    #     list_of_eq_values=[np.abs(theta_function(theta_k_values, f_dict_for_eq[equation], theta_k_variable_list)
-    #                  - eq_adapted_C_series[equation])  * (J**eval(re.search('K = \[(.+?)\]',equation).group(1)) )
-    #                        for equation in list_of_equations]
+        
 
         if len(self.list_of_equations)<len(self.theta_k_variable_list):
             list_of_eq_values+=[0 for additional_equation in range(len(self.theta_k_variable_list)-len(self.list_of_equations))]
@@ -708,22 +719,29 @@ class theta_eqs:
         return(theta_values)
         
     
-    def equation_solving (self):
+    def equation_solving (self, option='non-weighted', minimizer_option='local'):
         
         stopwatch=time.time()
-
-        self.theta_k_values=optimize.minimize(lambda theta_ks: sum(self.equation_system(theta_ks)**2), np.array([0 for k_theta in self.theta_k_variable_list]), method='SLSQP', bounds=tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) )) ).x
+        if minimizer_option=='local':
+            self.theta_k_values=optimize.minimize(lambda theta_ks: sum(self.equation_system(theta_ks, option)**2), np.array([0 for k_theta in self.theta_k_variable_list]), method='SLSQP', bounds=tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) )) ).x
+        elif minimizer_option=='global':
+            self.theta_k_values=optimize.basinhopping(lambda theta_ks: sum(self.equation_system(theta_ks, option)**2), np.array([0 for k_theta in self.theta_k_variable_list]), minimizer_kwargs={'method': 'SLSQP', 'bounds': tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list)))}, niter= 3, stepsize = 5 ).x
+        else:
+            
+            raise Exception('minimizer_option not recognized!')
         
-        
-        self.log(f'The bounds are: {tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) ))}', True)
 #         self.theta_k_values=optimize.leastsq(self.equation_system, np.array([0 for k_theta in self.theta_k_variable_list]))[0]
+        
+        
+        self.log(f'The bounds are: {tuple((-1/self.J, 1/self.J) for theta_k in range( len(self.theta_k_variable_list) ))}', False)
 
-        self.log(f'Equations solved in: {time.time()-stopwatch} seconds,\n The equations are solved with precision:  {sum(self.equation_system(self.theta_k_values)**2)} \n, The solutions are returned and also stored in self.theta_values', True)
+        self.log(f'Equations solved in: {time.time()-stopwatch} seconds,\n The equations are solved with precision:  {sum(self.equation_system(self.theta_k_values, option)**2)} \n, The solutions are returned and also stored in self.theta_values', True)
         
         self.theta_values=self.theta_k_to_theta_values()
         
+        self.precision=sum(self.equation_system(self.theta_k_values,option)**2)
         
-        return(self.theta_values)
+        return(self.theta_values, self.precision)
     
 # Tools and functions
 
